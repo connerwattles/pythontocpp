@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-
+#include "Position.h"
 using namespace std;
 
 class Site
@@ -9,10 +9,10 @@ public:
 	int id;
 	double quality;
 	int agentsAssigned;
-	pair<double, double> position;
+	Position position;
 
 	Site();
 
-	Site(int i, double qual, pair<double, double> pos);
+	Site(int i, double qual, Position pos);
 };
 

@@ -1,7 +1,7 @@
 #include "World.h"
 #include "Agent.h"
 #include "HelperFunctions.h"
-#include "params.h"
+#include "Params.h"
 #include <iostream>
 #include <tuple>
 #include <vector>
@@ -13,16 +13,16 @@ using namespace std;
 World::World() {
 	numSites = 0;
 	numAgents = 0;
-	sitePoses = { {0,0},{0,0} };
+	sitePositions = { Position(0,0),Position(0,0) };
 	siteQualities = {0};
 }
 
-World::World(int ind, int sites, vector<double> qualities, vector<pair<float, float>> poses, int agents) {
+World::World(int ind, int sites, vector<double> qualities, vector<Position> poses, int agents) {
 	worldInd = ind;
 	numSites = sites;
 	numAgents = agents;
 	siteQualities = qualities;
-	sitePoses = poses;
+    sitePositions = poses;
 }
 
 void World::saveMetaData() {

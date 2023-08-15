@@ -2,7 +2,7 @@
 #include <tuple>
 #include <vector>
 #include "HelperFunctions.h"
-#include "params.h"
+#include "Params.h"
 #include "Site.h"
 
 using namespace std;

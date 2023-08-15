@@ -1,23 +1,26 @@
 #pragma once
 #include <iostream>
 #include "Site.h"
+#include "Position.h"
+#include "Agent_State.h"
+#include "Direction.h"
 
 using namespace std;
 
 class Agent
 {
 public:
-	pair<double, double> position = { 0, 0 };
-	string state = "REST";
+	Position position = { 0, 0 };
+	AGENT_STATE state = AGENT_STATE::REST;
 	Site assignedSite;
-	pair<double, double> dir = { 0, 1 };
+	Direction direction = { 0, 1 };
 	int speed = 0;
 
 	int assignedWorld;
 	//World* assignedWorld;
 
 
-	Agent(pair<double, double> pos, int world);
+	Agent(Position pos, int world);
 
 	void step();
 

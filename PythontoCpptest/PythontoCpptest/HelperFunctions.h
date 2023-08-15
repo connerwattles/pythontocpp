@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-#include "params.h"
+#include "Params.h"
 #include "Agent.h"
 #include "World.h"
 #include <vector>
@@ -36,44 +36,42 @@ vector<vector<double>> getValidQualities(int num_sites, int num_configs) {
     return qual_arr;
 }
 
-double getDist2D(pair<double, double> a, pair<double, double> b)
+double getDist2D(Position a, Position b)
 {
-    return sqrt(pow(a.first - b.first, 2) + pow(a.second - b.second, 2));
+    return sqrt(pow(a.getX() - b.getX(), 2) + pow(a.getY() - b.getY(), 2));
 }
 
-vector<pair<float, float>>  getPoses(int s, int d) {
-    float pi = 2 * acos(0.0);
+vector<Position>  getPoses(int s, int d) {
+    double pi = 2 * acos(0.0); // is there a reason we manually recalculate pi every time?
     double angles = 2 * pi / s;
-    vector<pair<float, float>> poses;
+    vector<Position> positions;
 
     for (int i = 0; i < s; i++) {
-        pair<float, float> pose;
-        pose.first = (d * cos(angles * i));         
-        pose.second = (d * sin(angles * i));        
-        poses.push_back(pose);
+        Position position = {
+                (d * cos(angles * i)),
+                (d * sin(angles * i))
+        };
+        positions.push_back(position);
     }
-    return poses;
+    return positions;
 }
 
-vector<double> getHomeDir(vector<double> pos) {                     
-    vector<double> dir = { -1.0 * pos[0], -1.0 * pos[1] };
-
-    double norm = sqrt(dir[0] * dir[0] + dir[1] * dir[1]);
-    dir[0] /= norm;
-    dir[1] /= norm;
-
+Direction getHomeDir(Position position) {
+    Direction dir = {
+            -1.0 * position.getX(),
+            -1.0 * position.getY()
+    };
+    dir.normalize();
     return dir;
 }
 
-vector<double> getSiteDir(vector<double> pos, vector<double> sitePos) { 
-    vector<double> dir = { sitePos[0] - pos[0], sitePos[1] - pos[1] };
-    double norm = sqrt(dir[0] * dir[0] + dir[1] * dir[1]);
-    dir[0] /= norm;
-    dir[1] /= norm;
+Direction getSiteDir(Position pos, Position sitePos) {
+    Direction dir = { sitePos.x - pos.x, sitePos.y - pos.y };
+    dir.normalize();
     return dir;
 }
 
-vector<double> getExploreDir(vector<double> dir) {
+Direction getExploreDir(Direction dir) {
     srand(static_cast <unsigned> (time(0)));
     float random = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
@@ -88,11 +86,9 @@ vector<double> getExploreDir(vector<double> dir) {
         float to_change_dir = EXPLORE_DIRECTION_CHANGE * (choice);
         double xchange = to_change_dir;
         double ychange = to_change_dir;
-        dir[0] += xchange;
-        dir[1] += ychange;
-        double norm = sqrt(dir[0] * dir[0] + dir[1] * dir[1]);
-        dir[0] /= norm;
-        dir[1] /= norm;
+        dir.x_component += xchange;
+        dir.y_component += ychange;
+        dir.normalize();
     }
 
     return dir;
@@ -110,8 +106,6 @@ bool agentAtHub(Agent ag) {     //Tested and works
     if (getDist2D(ag.position, HUB_LOCATION) < SITE_SIZE) return true;
 
     else return false;
-
-    return false;
 }
 
 pair<bool, Site> agentAtAnySite(Agent ag) {
@@ -126,12 +120,10 @@ pair<bool, Site> agentAtAnySite(Agent ag) {
 }
 
 vector<int> getDancersBySiteForWorld(World world) {
-    vector<int> dancers;
-    for (int i = 0; i < world.numSites; i++) {
-        dancers.push_back(0);
-    }
+    vector<int> dancers(world.numSites, 0);
+
     for (Agent agent : world.agents) {
-        if (agent.state == "DANCE") {
+        if (agent.state == AGENT_STATE::DANCE) {
             dancers.at(agent.assignedSite.id) += 1;
         }
     }
@@ -145,21 +137,21 @@ vector<int> getDancersBySite(Agent ag) {
         dancers.push_back(0);
     }
     for (Agent agent : world.agents) {
-        if (agent.state == "DANCE") {
+        if (agent.state == AGENT_STATE::DANCE) {
             dancers.at(agent.assignedSite.id) += 1;
         }
     }
     return dancers;
 }
 
-tuple<vector<pair<double, double>>, vector<pair<double, double>>, vector<string>, vector<Site>> getAllAgentPosesDirsStatesSites(World world) {
-    vector<pair<double, double>> poses;
-    vector<pair<double, double>> dirs;
-    vector<string> states;
+tuple<vector<Position>, vector<Direction>, vector<AGENT_STATE>, vector<Site>> getAllAgentPosesDirsStatesSites(World world) {
+    vector<Position> poses;
+    vector<Direction> dirs;
+    vector<AGENT_STATE> states;
     vector<Site> sites;
     for (Agent agent : world.agents) {
         poses.push_back(agent.position);
-        dirs.push_back(agent.dir);
+        dirs.push_back(agent.direction);
         states.push_back(agent.state);
         if (&(agent.assignedSite) != NULL) {
             sites.push_back(agent.assignedSite);

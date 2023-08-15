@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include "Agent.h"
-#include "params.h"
+#include "Params.h"
 #include "World.h"
 #include <map>
 #include <random>
@@ -21,15 +21,15 @@ vector<int> getDancersBySiteTransitions(Agent ag) {
 		dancers.push_back(0);
 	}
 	for (Agent agent : world.agents) {
-		if (agent.state == "DANCE") {
+		if (agent.state == AGENT_STATE::DANCE) {
 			dancers.at(agent.assignedSite.id) += 1;
 		}
 	}
 	return dancers;
 }
 
-map<string, float> transitionProbabilitiesRest(Agent agent) {
-	map<string, float> returnVal;
+map<string, double> transitionProbabilitiesRest(Agent agent) {
+	map<string, double> returnVal;
 
 	vector<double> transitionProbabilities;
 
@@ -53,58 +53,58 @@ map<string, float> transitionProbabilitiesRest(Agent agent) {
 	return returnVal;
 }
 
-map<string, float> transitionProbabilitiesExplore(Agent agent) {
-	map<string, float> returnVal;
+map<string, double> transitionProbabilitiesExplore(Agent agent) {
+	map<string, double> returnVal;
 
 	return returnVal;
 }
 
-map<string, float> transitionProbabilitiesAssess(Agent agent) {
-	map<string, float> returnVal;
+map<string, double> transitionProbabilitiesAssess(Agent agent) {
+	map<string, double> returnVal;
 
 	return returnVal;
 }
 
-map<string, float> transitionProbabilitiesDance(Agent agent) {
-	map<string, float> returnVal;
+map<string, double> transitionProbabilitiesDance(Agent agent) {
+	map<string, double> returnVal;
 
 	return returnVal;
 }
 
-map<string, float> transitionProbabilitiesTravelDance(Agent agent) {
-	map<string, float> returnVal;
+map<string, double> transitionProbabilitiesTravelDance(Agent agent) {
+	map<string, double> returnVal;
 
 	return returnVal;
 }
 
-map<string, float> transitionProbabilitiesTravelRest(Agent agent) {
-	map<string, float> returnVal;
+map<string, double> transitionProbabilitiesTravelRest(Agent agent) {
+	map<string, double> returnVal;
 
 	return returnVal;
 }
 
-map<string, float> transitionProbabilitiesTravelSite(Agent agent) {
-	map<string, float> returnVal;
+map<string, double> transitionProbabilitiesTravelSite(Agent agent) {
+	map<string, double> returnVal;
 
 	return returnVal;
 }
 
-string getTransition(Agent agent) {
-	map<string, float> transitionProbabilities;
+AGENT_STATE getTransition(Agent agent) {
+	map<string, double> transitionProbabilities;
 
-	if (agent.state == "REST") transitionProbabilities = transitionProbabilitiesRest(agent);
+	if (agent.state == AGENT_STATE::REST) transitionProbabilities = transitionProbabilitiesRest(agent);
 
-	else if (agent.state == "EXPLORE") transitionProbabilities = transitionProbabilitiesExplore(agent);
+	else if (agent.state == AGENT_STATE::EXPLORE) transitionProbabilities = transitionProbabilitiesExplore(agent);
 
-	else if (agent.state == "ASSESS") transitionProbabilities = transitionProbabilitiesAssess(agent);
+	else if (agent.state == AGENT_STATE::ASSESS) transitionProbabilities = transitionProbabilitiesAssess(agent);
 
-	else if (agent.state == "DANCE") transitionProbabilities = transitionProbabilitiesDance(agent);
+	else if (agent.state == AGENT_STATE::DANCE) transitionProbabilities = transitionProbabilitiesDance(agent);
 
-	else if (agent.state == "Travel HOME TO DANCE") transitionProbabilities = transitionProbabilitiesTravelDance(agent);
+	else if (agent.state ==  AGENT_STATE::TRAVEL_HOME_TO_DANCE) transitionProbabilities = transitionProbabilitiesTravelDance(agent);
 
-	else if (agent.state == "TRAVEL HOME TO REST") transitionProbabilities = transitionProbabilitiesTravelRest(agent);
+	else if (agent.state == AGENT_STATE::TRAVEL_HOME_TO_REST) transitionProbabilities = transitionProbabilitiesTravelRest(agent);
 
-	else if (agent.state == "TRAVEL SITE") transitionProbabilities = transitionProbabilitiesTravelSite(agent);
+	else if (agent.state == AGENT_STATE::TRAVEL_SITE) transitionProbabilities = transitionProbabilitiesTravelSite(agent);
 
 	else abort();
 
@@ -114,5 +114,5 @@ string getTransition(Agent agent) {
 	//return the new state and the copy of the site
 
 	//else return the new state and none as the site attached
-	return "REST";
+	return AGENT_STATE::REST;
 }

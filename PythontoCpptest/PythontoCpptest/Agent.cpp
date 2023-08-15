@@ -4,13 +4,13 @@
 
 using namespace std;
 
-Agent::Agent(pair<double, double> pos, int world) {
+Agent::Agent(Position pos, int world) {
 	position = pos;
 	assignedWorld = world;
 }
 
 void Agent::step() {
-	cout << "position: " << position.first << ", " << position.second << endl;
+	cout << "position: " << position.getX() << ", " << position.getY() << endl;
 
 	string nextState = getTransition(*this);
 

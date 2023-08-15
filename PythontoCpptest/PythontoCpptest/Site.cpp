@@ -7,7 +7,7 @@ Site::Site() {
 	position = { 0, 0 };
 }
 
-Site::Site(int i, double qual , pair<double, double> pos) {
+Site::Site(int i, double qual , Position pos) {
 	id = i;
 	quality = qual;
 	agentsAssigned = 0;

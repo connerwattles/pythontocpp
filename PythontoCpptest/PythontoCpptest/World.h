@@ -15,7 +15,7 @@ public:
 	int numSites;
 	int numAgents;
 	vector<double> siteQualities;
-	vector<pair<float, float>> sitePoses;
+	vector<Position> sitePositions;
 	double convergedToSite = 0.0;
 
 	int time = 0;
@@ -28,7 +28,7 @@ public:
 
 	World();
 
-	World(int ind, int sites, vector<double> qualities, vector<pair<float, float>> poses, int agents);	//Update data type for siteQual and SitePos
+	World(int ind, int sites, vector<double> qualities, vector<Position> poses, int agents);	//Update data type for siteQual and SitePos
 
 	void saveMetaData();
 

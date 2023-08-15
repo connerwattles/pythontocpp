@@ -3,11 +3,11 @@
 #define PARAMS_H
 
 #include <utility>
-
+#include "Position.h"
 using namespace std;
 
 //Environment
-const pair<int, int>  HUB_LOCATION(0, 0);
+const Position  HUB_LOCATION(0, 0);
 
 const int SITE_SIZE = 20;
 
