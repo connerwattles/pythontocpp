@@ -1,0 +1,16 @@
+//
+// Created by walte on 8/14/2023.
+//
+
+#ifndef RESEARCH_LAB_AGENT_STATE_H
+#define RESEARCH_LAB_AGENT_STATE_H
+enum class AGENT_STATE {
+    REST,
+    TRAVEL_HOME_TO_DANCE,
+    TRAVEL_HOME_TO_REST,
+    TRAVEL_SITE,
+    EXPLORE,
+    DANCE,
+    ASSESS
+};
+#endif //RESEARCH_LAB_AGENT_STATE_H
