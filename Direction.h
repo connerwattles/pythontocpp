@@ -2,12 +2,19 @@
 // Created by walte on 8/15/2023.
 //
 
-#ifndef RESEARCH_LAB_DIRECTION_H
-#define RESEARCH_LAB_DIRECTION_H
+#ifndef DIRECTION_H
+#define DIRECTION_H
 
 #include <ostream>
 #include <string>
 #include <sstream>
+#include <math.h>
+#include "Position.h"
+#include "Params.h"
+#include <vector>
+#include <random>
+#include <time.h>
+#include <tuple>
 
 class Direction
 {
@@ -17,9 +24,10 @@ public:
 
     void normalize()
     {
+//        cout << "normalized" << endl;
         double norm = sqrt((x_component * x_component) + (y_component * y_component));
-        this->x_component = x_component * norm;
-        this->y_component = y_component * norm;
+        this->x_component = x_component / norm;
+        this->y_component = y_component / norm;
     }
 
     Direction(double xComponent, double yComponent) : x_component(xComponent), y_component(yComponent)
@@ -88,8 +96,39 @@ public:
         return os;
     }
 
+    static Direction getDirection(Position* from, Position* to)
+    {
+        Direction dir = { to->x - from->x, to->y - from->y };
+//        dir.normalize();
+        return dir;
+    }
 
+    Direction getExploreDir() {
+        srand(static_cast <unsigned> (time(0)));
+        float random = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
+
+        Direction dir(x_component, y_component);
+        if (random > EXPLORE_RANDOMNESS) {
+            vector<int> intList{1, -1};
+            random_device rd;
+            mt19937 eng(rd());
+            uniform_int_distribution<> distr(0, intList.size() - 1);
+            int choice = intList[distr(eng)];
+
+            float to_change_dir = EXPLORE_DIRECTION_CHANGE * (choice);
+            double xchange = to_change_dir;
+            double ychange = to_change_dir;
+
+            dir.x_component += xchange;
+            dir.y_component += ychange;
+        }
+
+//        dir.normalize();
+        return dir;
+    }
 };
+
 
 
 #endif //RESEARCH_LAB_DIRECTION_H

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <random>
 #include "World.h"
-#include "Position.h"
 
 using namespace std;
 
@@ -224,51 +223,66 @@ vector<vector<double>> getValidQualitiesMain(int num_sites, int num_configs) {
 
 	return qual_arr;
 }
-
-vector<pair<float, float>>  getPosesMain(int s, int d) {
+//
+vector<Position>  getPosesMain(int s, int d) {
 	float pi = 2 * acos(0.0);
 	double angles = 2 * pi / s;
-	vector<pair<float, float>> poses;
+	vector<Position> poses;
 
 	for (int i = 0; i < s; i++) {
-		pair<float, float> pose;
-		pose.first = (d * cos(angles * i));
-		pose.second = (d * sin(angles * i));
-		poses.push_back(pose);
+		Position p = {
+                (d * cos(angles * i)),
+                (d * sin(angles * i))
+        };
+		poses.push_back(p);
 	}
 	return poses;
 }
 
-vector<World> generateWorldConfigs(int siteConfigs, vector<int> distances, int agentConfigs, int simsPerConfig, int simsPerDistance)
+void runWorlds(int siteConfigs, vector<int> distances, int agentConfigs, int simsPerConfig, int simsPerDistance)
 {
-	vector<World> worlds;
 
 	for (int distance = 0; distance < distances.size(); distance++) {
 		for (int simDistance = 0; simDistance < simsPerDistance; simDistance++) {
-			vector<pair<float, float>> poses = getPosesMain(siteConfigs, distances[distance]); //from helper function
+			vector<Position> poses = getPosesMain(siteConfigs, distances[distance]); //from helper function
 			vector<vector<double>> qualities = getValidQualitiesMain(siteConfigs, simsPerConfig);
 			for (int i = 0; i < qualities.size(); i++) {
-				World newWorld(i, siteConfigs, qualities.at(i), poses, agentConfigs);
-				worlds.push_back(newWorld);
+                vector<Site*> sites;
+                sites.reserve(poses.size());
+                for (int j = 0; j < poses.size(); ++j)
+                    sites.push_back(new Site(j, qualities.at(i).at(j), poses.at(j)));
+				World(siteConfigs, sites, agentConfigs).simulateSingleThreaded();
+                for (auto site : sites)
+                {
+                    cout << "deleting site" << endl;
+                    delete site;
+                }
 			}
 		}
 	}
-	return worlds;
 }
 
 int main() {
-	int siteConfigs = 2;
-	vector<int> distances = { 100, 200 };
-	int agentConfigs = 20;
-	int simsPerConfig = 10;
-	int simsPerDistance = 20;
+	int siteConfigs = 5;
+	vector<int> distances = { 50 };
+	int agentConfigs = 5;
+	int simsPerConfig = 1;
+	int simsPerDistance = 1;
 
-	//vector<World> worlds;
+    try
+    {
+        runWorlds(siteConfigs, distances, agentConfigs, simsPerConfig, simsPerDistance);
+    }
+    catch (const char* msg)
+    {
+        cout << msg << endl;
+        return 1;
+    }
+    return 0;
+//
+//	for (int sim = 0; sim < worlds.size(); sim++) {
+//		worlds.at(sim).simulateSingleThreaded();
+//		cout << sim << " done" << endl;
+//	}
 
-	worlds = generateWorldConfigs(siteConfigs, distances, agentConfigs, simsPerConfig, simsPerDistance);
-
-	for (int sim = 0; sim < worlds.size(); sim++) {
-		worlds.at(sim).simulate();
-		cout << sim << " done" << endl;
-	}
 }

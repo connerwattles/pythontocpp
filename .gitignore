@@ -13,3 +13,4 @@ PythontoCpptest.sln
 /PythontoCpptest/PythontoCpptest/Debug
 /PythontoCpptest/PythontoCpptest/x64
 /PythontoCpptest/x64
+.gitignore
