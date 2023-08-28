@@ -15,6 +15,7 @@ public:
 	int numSites;
 	int numAgents;
 	double convergedToSite = 0.0;
+    string uniqueFileName;
 
 	int time = 0;
 
@@ -24,7 +25,7 @@ public:
 
 	vector<Site*> sites;
 
-	World(int siteCount, vector<Site*> sites, int agentCount);	//Update data type for siteQual and SitePos
+	World(int siteCount, vector<Site*> sites, int agentCount, String uniqueFileName);	//Update data type for siteQual and SitePos
 
 	void saveMetaData()
     {
@@ -54,18 +55,18 @@ public:
         return dancerCountBySite;
     }
 
-//    tuple<vector<Position>, vector<Direction>, vector<AGENT_STATE>, vector<Site*>> getAllAgentPosesDirsStatesSites() {
-//        vector<Position> poses;
-//        vector<Direction> dirs;
-//        vector<AGENT_STATE> states;
-//        vector<Site*> sites;
-//        for (Agent* agent : agents) {
-//            poses.push_back(agent->position);
-//            dirs.push_back(agent->direction);
-//            states.push_back(agent->state);
-//            sites.push_back(agent->assignedSite);
-//        }
-//        return make_tuple(poses, dirs, states, sites);
-//    }
+    tuple<vector<Position>, vector<Direction>, vector<AGENT_STATE>, vector<Site*>> getAllAgentPosesDirsStatesSites() {
+        vector<Position> poses;
+        vector<Direction> dirs;
+        vector<AGENT_STATE> states;
+        vector<Site*> sites;
+        for (Agent* agent : agents) {
+            poses.push_back(agent->position);
+            dirs.push_back(agent->direction);
+            states.push_back(agent->state);
+            sites.push_back(agent->assignedSite);
+        }
+        return make_tuple(poses, dirs, states, sites);
+    }
 };
 #endif

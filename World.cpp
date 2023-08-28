@@ -10,10 +10,11 @@
 using namespace std;
 
 
-World::World(int siteCount, vector<Site*> sites, int agentCount) {
+World::World(int siteCount, vector<Site*> sites, int agentCount, string uniqueFileName) {
 	numSites = siteCount;
 	numAgents = agentCount;
 	this->sites = sites;
+    this->uniqueFileName = uniqueFileName;
 }
 
 
@@ -26,13 +27,7 @@ void World::simulateSingleThreaded() {
 
 	addAgents();
 
-//	tuple<vector<Position>, vector<Direction>, vector<AGENT_STATE>, vector<Site*>> values;
-//	values = getAllAgentPosesDirsStatesSites();
 
-//	vector<Position> poses = get<0>(values);
-//	vector<Direction> dirs = get<1>(values);
-//	vector<AGENT_STATE> states = get<2>(values);
-//	vector<Site*> agent_sites = get<3>(values);
 
 	//save copies of each of the values to another data structure so it can be added to a dataframe
 
@@ -44,6 +39,14 @@ void World::simulateSingleThreaded() {
 	while (time < TIME_LIMIT)  {
         vector<int> dancerCountBySize = getDancerCountBySite();
         int numDancers = accumulate(dancerCountBySize.begin(), dancerCountBySize.end(), 0);
+
+        tuple<vector<Position>, vector<Direction>, vector<AGENT_STATE>, vector<Site*>> values;
+        values = getAllAgentPosesDirsStatesSites();
+
+        vector<Position> poses = get<0>(values);
+        vector<Direction> dirs = get<1>(values);
+        vector<AGENT_STATE> states = get<2>(values);
+        vector<Site*> agent_sites = get<3>(values);
 
 		for (auto agent : agents) {
 //            cout << "step: " << time << ", agent: " << agent->id << ", state: " << Agent::toString(agent->state) << endl;
@@ -67,22 +70,22 @@ void World::simulateSingleThreaded() {
 //		allStates.push_back(states);
 //		allSites.push_back(agent_sites);
 
-//		vector<int> dancers = getDancerCountBySite();
-//        int maxVal = -1;
-//        int maxIndex = -1;
-//        for (int currDancerIndex = 0; currDancerIndex < dancers.size(); ++currDancerIndex)
-//        {
-//            if (dancers.at(currDancerIndex) > maxIndex)
-//            {
-//                maxIndex = currDancerIndex;
-//                maxVal = dancers.at(currDancerIndex);
-//            }
-//        }
-//		if (maxVal > (COMMIT_THRESHOLD * numAgents)) {
-//            // set convergedToSite to the quality of the site with the most dancers
-//            convergedToSite = sites.at(maxIndex)->quality;
-//			break;
-//		}
+		vector<int> dancers = getDancerCountBySite();
+        int maxVal = -1;
+        int maxIndex = -1;
+        for (int currDancerIndex = 0; currDancerIndex < dancers.size(); ++currDancerIndex)
+        {
+            if (dancers.at(currDancerIndex) > maxIndex)
+            {
+                maxIndex = currDancerIndex;
+                maxVal = dancers.at(currDancerIndex);
+            }
+        }
+		if (maxVal > (COMMIT_THRESHOLD * numAgents)) {
+            // set convergedToSite to the quality of the site with the most dancers
+            convergedToSite = sites.at(maxIndex)->quality;
+			break;
+		}
 	}
     for (Agent* agent : agents)
     {

@@ -53,7 +53,7 @@ void Agent::goHome() {
 void Agent::goSite() {
 	speed = AGENT_SPEED;
 
-    if (assignedSite == nullptr) abort();
+    if (assignedSite == nullptr) assert(false, "should not happen (goSite)");
 
     direction = Direction::getDirection(&position, &(assignedSite->position));
 //    direction.normalize();
