@@ -2,6 +2,7 @@
 #include "Agent.h"
 #include "Params.h"
 #include <iostream>
+#include <fstream>
 #include <tuple>
 #include <vector>
 #include <fstream>
@@ -110,5 +111,13 @@ void World::simulateSingleThreaded() {
 	//create something similar to a dataframe that stores the list of values then save to metadata
 
 	//write the values to a csv
+}
+
+void writeToCsv(string fileName, string time, vector<Position> agentPositions, vector<Direction> agentDirections, vector<string> agentStates, vector<Site> agentSites) {
+    ofstream file;
+    file.open(fileName, ios_base::app);
+    file << "time," << "agent_positions," << "agent_directions," << "agent_states," << "agent_sites\n";
+    file << 
+    //loop through all data and add to csv
 }
 
