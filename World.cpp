@@ -6,6 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <numeric>
 
 using namespace std;
 
@@ -20,21 +21,11 @@ World::World(int siteCount, vector<Site*> sites, int agentCount, string uniqueFi
 
 
 void World::simulateSingleThreaded() {
-//	vector<vector<Position>> allPoses;
-//	vector<vector<Direction>> allDirs;
-//	vector<vector<AGENT_STATE>> allStates;
-//	vector<vector<Site*>> allSites;
-
 	addAgents();
 
-
-
-	//save copies of each of the values to another data structure so it can be added to a dataframe
-
-//	allPoses.push_back(poses);
-//	allDirs.push_back(dirs);
-//	allStates.push_back(states);
-//	allSites.push_back(agent_sites);
+    tuple<vector<Position>, vector<Direction>, vector<AGENT_STATE>, vector<Site*>> start = getAllAgentPosesDirsStatesSites();
+    
+    ofstream outFile;
 
 	while (time < TIME_LIMIT)  {
         vector<int> dancerCountBySize = getDancerCountBySite();
