@@ -7,15 +7,16 @@
 #include <fstream>
 #include <string>
 #include <numeric>
+#include <chrono>
 
 using namespace std;
 
 
-World::World(int siteCount, vector<Site*> sites, int agentCount, string uniqueFileName) {
+World::World(int siteCount, vector<Site*> sites, int agentCount) {
 	numSites = siteCount;
 	numAgents = agentCount;
 	this->sites = sites;
-    this->uniqueFileName = uniqueFileName;
+    //this->uniqueFileName = uniqueFileName;
 }
 
 
@@ -24,9 +25,13 @@ void World::simulateSingleThreaded() {
 	addAgents();
 
     tuple<vector<Position>, vector<Direction>, vector<AGENT_STATE>, vector<Site*>> start = getAllAgentPosesDirsStatesSites();
+
+    double currTime = chrono::duration_cast<chrono::duration<double>>(chrono::system_clock::now().time_since_epoch()).count();
+    
+    string uniqueFileName = "./sim_results/" + to_string(int(currTime)) + ".csv";
     
     ofstream outFile;
-    outFile.open("./sim_results/" + uniqueFileName + ".csv", ios_base::app);                    //check again to make file name unique
+    outFile.open(uniqueFileName, ios_base::app);                    //check again to make file name unique
 
     outFile << ",time,agent_positions,agent_directions,agent_states,agentsites\n";
 
@@ -83,7 +88,20 @@ void World::simulateSingleThreaded() {
         outFile << "], [";
 
         for (int i = 0; i < states.size(); i++) {
-            outFile << agents.at(0)->toString(states.at(i)) << ", " ;
+            string state = "NONE";
+
+            switch (states.at(i))
+            { 
+                case AGENT_STATE::REST: state = "REST";
+                case AGENT_STATE::TRAVEL_HOME_TO_DANCE: state = "TRAVEL_HOME_TO_DANCE";
+                case AGENT_STATE::TRAVEL_HOME_TO_REST: state = "TRAVEL_HOME_TO_REST";
+                case AGENT_STATE::TRAVEL_SITE: state = "TRAVEL_SITE";
+                case AGENT_STATE::EXPLORE: state = "EXPLORE";
+                case AGENT_STATE::DANCE: state = "DANCE";
+                case AGENT_STATE::ASSESS: state = "ASSESS";
+            }
+
+            outFile << state << ", " ;
         }
 
         outFile << "], [";
@@ -105,7 +123,7 @@ void World::simulateSingleThreaded() {
     }
 
     ofstream metadata;
-    metadata.open("./sim_results/" + uniqueFileName + "metadata" + ".csv", ios_base::app);
+    metadata.open(uniqueFileName, ios_base::app);
     metadata << ",num_sites,site_qualities,site_positions,hub_position,num_agents,site_converged,time_converged\n";
     metadata << to_string(numSites) << "," << "(";
     for (int i = 0; i < numSites; i++) {
