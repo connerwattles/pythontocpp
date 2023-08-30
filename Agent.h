@@ -8,6 +8,7 @@
 #include "Getters.h"
 #include <map>
 #include <sstream>
+#include <numeric>
 
 using namespace std;
 

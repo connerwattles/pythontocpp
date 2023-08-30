@@ -83,7 +83,7 @@ void World::simulateSingleThreaded() {
         outFile << "], [";
 
         for (int i = 0; i < states.size(); i++) {
-            outFile << states.at(i) << ", " ;
+            outFile << agents.at(0)->toString(states.at(i)) << ", " ;
         }
 
         outFile << "], [";
@@ -110,12 +110,14 @@ void World::simulateSingleThreaded() {
     metadata << to_string(numSites) << "," << "(";
     for (int i = 0; i < numSites; i++) {
         //write to csv each site quality
+        metadata << to_string(sites.at(i)->quality) << ", ";
     }
     metadata << "),(";
     for (int i = 0; i < numSites; i++) {
         //write position for site
+        metadata << "[" << to_string(sites.at(i)->position.getX()) << ", " << to_string(sites.at(i)->position.getY()) << "], ";
     }
     metadata << "),[" << to_string(HUB_LOCATION.getX()) << ", " << to_string(HUB_LOCATION.getY()) << "]," <<
-        to_string(numAgents) << ",";    //Add num sites converged and time converged
+        to_string(numAgents) << "," << to_string(convergedToSite) << "," << to_string(time);    //Add num sites converged and time converged
 }
 
