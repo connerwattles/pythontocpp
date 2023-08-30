@@ -122,8 +122,10 @@ void World::simulateSingleThreaded() {
         delete agent;
     }
 
+    string metadataName = "./sim_results/" + to_string(int(currTime)) + "metadata.csv";
+
     ofstream metadata;
-    metadata.open(uniqueFileName, ios_base::app);
+    metadata.open(metadataName, ios_base::app);
     metadata << ",num_sites,site_qualities,site_positions,hub_position,num_agents,site_converged,time_converged\n";
     metadata << to_string(numSites) << "," << "(";
     for (int i = 0; i < numSites; i++) {
