@@ -25,7 +25,7 @@ public:
 
 	vector<Site*> sites;
 
-	World(int siteCount, vector<Site*> sites, int agentCount, String uniqueFileName);	//Update data type for siteQual and SitePos
+	World(int siteCount, vector<Site*> sites, int agentCount, string uniqueFileName);	//Update data type for siteQual and SitePos
 
 	void saveMetaData()
     {
@@ -67,6 +67,11 @@ public:
             sites.push_back(agent->assignedSite);
         }
         return make_tuple(poses, dirs, states, sites);
+    }
+
+    void addLineToCSV()
+    {
+
     }
 };
 #endif

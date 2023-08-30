@@ -49,8 +49,6 @@ void World::simulateSingleThreaded() {
         vector<Site*> agent_sites = get<3>(values);
 
 		for (auto agent : agents) {
-//            cout << "step: " << time << ", agent: " << agent->id << ", state: " << Agent::toString(agent->state) << endl;
-//            cout << "step: " << time << agent->toString() << endl;
 			agent->step(dancerCountBySize, numDancers);
 		}
 		time += 1;
