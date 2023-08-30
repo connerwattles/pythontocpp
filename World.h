@@ -2,6 +2,7 @@
 #define WORLD_H
 #include <iostream>
 #include <vector>
+#include <fstream>
 #include "Site.h"
 #include "Agent.h"
 
@@ -16,9 +17,6 @@ public:
 	int numAgents;
 	double convergedToSite = 0.0;
     string uniqueFileName;
-
-	int time = 0;
-
 //	int iterations = 0;
 
 	vector<Agent*> agents;
@@ -29,7 +27,7 @@ public:
 
 	void saveMetaData()
     {
-        cout << "SAVE META DATA IS NOT DONE YET" << endl;
+        cout << "not done yet" << endl;
     }
 
     void addAgents() {
@@ -49,6 +47,7 @@ public:
         }
         for (Agent* agent : agents) {
             if (agent->state == AGENT_STATE::DANCE) {
+                getters::assert(agent->assignedSite != nullptr, "assigned site must not be null (getDancerCountBySite)");
                 dancerCountBySite.at(agent->assignedSite->id) += 1;
             }
         }
@@ -69,9 +68,50 @@ public:
         return make_tuple(poses, dirs, states, sites);
     }
 
-    void addLineToCSV()
+    void addLineToCSV(bool firstLine, int time)
     {
+        ofstream outFile;
 
+        if (firstLine)
+        {
+            outFile.open("sim_results/" + uniqueFileName + ".csv");
+            outFile << "time, agent_position, agent_directions, agent_states, agent_sites" << endl;
+        }
+        else
+        {
+            outFile.open("sim_results/" + uniqueFileName + ".csv", std::ofstream::app);
+        }
+        outFile << time << ",";
+        outFile << "[";
+        for (int ag = 0; ag < numAgents; ag++)
+        {
+            outFile << "[" << agents.at(ag)->position.getX() << ", "
+                    << agents.at(ag)->position.getY() << "], ";
+        }
+        outFile << "],";
+        outFile << "[";
+        for (int ag = 0; ag < numAgents; ag++)
+        {
+            outFile << "[" << agents.at(ag)->direction.getXComponent() << ", "
+                    << agents.at(ag)->direction.getYComponent() << "], ";
+        }
+        outFile << "],";
+        outFile << "[";
+        for (int ag = 0; ag < numAgents; ag++)
+        {
+            outFile << Agent::toString(agents.at(ag)->state) << ",";
+        }
+        outFile << "],";
+        outFile << "[";
+        for (int ag = 0; ag < numAgents; ag++)
+        {
+            if (agents.at(ag)->assignedSite == nullptr) outFile << "None, ";
+            else outFile << agents.at(ag)->assignedSite->id << ",";
+        }
+        outFile << "]" << endl;
+        outFile.close();
     }
+
+    void simulateMultiThreaded();
 };
 #endif

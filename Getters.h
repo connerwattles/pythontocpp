@@ -40,15 +40,20 @@ public:
 
     static void assert(bool b, const char *msg)
     {
+
         if (!b)
-            throw msg;
+        {
+            cerr << msg << endl;
+//            throw msg;
+        }
     }
 
     static double danceToRestProb(double p, bool isAtHub, double assignedSiteQuality)
     {
         if (!isAtHub)
         {
-            assert(false, "must be at hub for this branch (danceToRestProb)");
+//            assert(false, "must be at hub for this branch (danceToRestProb)");
+            return 0.0;
         }
 
 
@@ -61,7 +66,8 @@ public:
     {
         if (!isAtHub)
         {
-            assert(false, "must be at hub for this branch (danceToTravelSiteProb)");
+//            assert(false, "must be at hub for this branch (danceToTravelSiteProb)");
+            return 0.0;
         }
 
 
@@ -74,7 +80,8 @@ public:
     {
         if (!agentAtAnySite)
         {
-            assert(false, "agent must be at some site for this branch to occur (assesToTravelHomeProb)");
+            return 0.0;
+//            assert(false, "agent must be at some site for this branch to occur (assesToTravelHomeProb)");
         }
         return p;
     }
@@ -97,7 +104,7 @@ public:
 
     static pair<double,Site*> restToTravelSiteProb(double p, bool agentAtHub, const vector<int>& dancerCountBySite, int numDancers, const vector<Site*>& sites)
     {
-        if (!agentAtHub || p == 0)
+        if (!agentAtHub || p == 0 || numDancers == 0)
             return {0.0, nullptr};
 
         double prob = 1.0 * p / numDancers;

@@ -1,5 +1,7 @@
 #include <iostream>
 #include <random>
+#include <combaseapi.h>
+#include <thread>
 #include "World.h"
 
 using namespace std;
@@ -239,7 +241,25 @@ vector<Position>  getPosesMain(int s, int d) {
 	return poses;
 }
 
-void runWorlds(int siteConfigs, vector<int> distances, int agentConfigs, int simsPerConfig, int simsPerDistance)
+std::string random_string(std::size_t length)
+{
+    const std::string CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    std::random_device random_device;
+    std::mt19937 generator(random_device());
+    std::uniform_int_distribution<> distribution(0, CHARACTERS.size() - 1);
+
+    std::string random_string;
+
+    for (std::size_t i = 0; i < length; ++i)
+    {
+        random_string += CHARACTERS[distribution(generator)];
+    }
+
+    return random_string;
+}
+
+void runWorldsSingleThreaded(int siteConfigs, vector<int> distances, int agentConfigs, int simsPerConfig, int simsPerDistance)
 {
 
 	for (int distance = 0; distance < distances.size(); distance++) {
@@ -251,38 +271,90 @@ void runWorlds(int siteConfigs, vector<int> distances, int agentConfigs, int sim
                 sites.reserve(poses.size());
                 for (int j = 0; j < poses.size(); ++j)
                     sites.push_back(new Site(j, qualities.at(i).at(j), poses.at(j)));
-				World(siteConfigs, sites, agentConfigs).simulateSingleThreaded();
-                for (auto site : sites)
-                {
-                    cout << "deleting site" << endl;
-                    delete site;
-                }
+				World(siteConfigs, sites, agentConfigs, random_string(12)).simulateSingleThreaded();
 			}
 		}
 	}
 }
 
-int main() {
-	int siteConfigs = 5;
-	vector<int> distances = { 50 };
-	int agentConfigs = 5;
-	int simsPerConfig = 1;
-	int simsPerDistance = 1;
+void runWorldsMultiThreaded(int siteConfigs, vector<int> distances, int agentConfigs, int simsPerConfig, int simsPerDistance)
+{
+    for (int distance = 0; distance < distances.size(); distance++) {
+		for (int simDistance = 0; simDistance < simsPerDistance; simDistance++) {
+			vector<Position> poses = getPosesMain(siteConfigs, distances[distance]); //from helper function
+			vector<vector<double>> qualities = getValidQualitiesMain(siteConfigs, simsPerConfig);
+			for (int i = 0; i < qualities.size(); i++) {
+                vector<Site*> sites;
+                sites.reserve(poses.size());
+                for (int j = 0; j < poses.size(); ++j)
+                    sites.push_back(new Site(j, qualities.at(i).at(j), poses.at(j)));
+                    World(siteConfigs, sites, agentConfigs, random_string(12)).simulateMultiThreaded();
+			}
+		}
+	}
+}
 
+void runManySingleWorldsMultiThreaded(int siteConfigs, vector<int> distances, int agentConfigs, int simsPerConfig, int simsPerDistance)
+{
+    std::vector<std::thread> threads;
+    for (int distance = 0; distance < distances.size(); distance++)
+    {
+        for (int simDistance = 0; simDistance < simsPerDistance; simDistance++)
+        {
+            vector<Position> poses = getPosesMain(siteConfigs, distances[distance]); //from helper function
+            vector<vector<double>> qualities = getValidQualitiesMain(siteConfigs, simsPerConfig);
+            for (int i = 0; i < qualities.size(); i++)
+            {
+                vector<Site *> sites;
+                sites.reserve(poses.size());
+                for (int j = 0; j < poses.size(); ++j)
+                    sites.push_back(new Site(j, qualities.at(i).at(j), poses.at(j)));
+                threads.emplace_back([&]() {
+                    World(siteConfigs, sites, agentConfigs, "test").simulateSingleThreaded();
+                });
+                if (threads.size() == 5)
+                {
+                    for (auto& thread : threads) {
+                        thread.join();
+                    }
+                    threads.clear();
+                }
+            }
+        }
+
+    }
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+}
+
+int main()
+{
     try
     {
-        runWorlds(siteConfigs, distances, agentConfigs, simsPerConfig, simsPerDistance);
+        int siteConfigs = 2;
+        vector<int> distances = {100, 200};
+        int agentConfigs = 20;
+        int simsPerConfig = 10;
+        int simsPerDistance = 20;
+
+//        int siteConfigs = 1;
+//        vector<int> distances = {100};
+//        int agentConfigs = 20;
+//        int simsPerConfig = 1;
+//        int simsPerDistance = 2;
+
+//        runWorldsSingleThreaded(siteConfigs, distances, agentConfigs, simsPerConfig, simsPerDistance);
+        runWorldsMultiThreaded(siteConfigs, distances, agentConfigs, simsPerConfig, simsPerDistance);
+//        runManySingleWorldsMultiThreaded(siteConfigs, distances, agentConfigs, simsPerConfig, simsPerDistance);
     }
-    catch (const char* msg)
+    catch (char const* msg)
     {
         cout << msg << endl;
         return 1;
     }
     return 0;
-//
-//	for (int sim = 0; sim < worlds.size(); sim++) {
-//		worlds.at(sim).simulateSingleThreaded();
-//		cout << sim << " done" << endl;
-//	}
+
 
 }

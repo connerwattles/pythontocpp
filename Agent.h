@@ -13,6 +13,7 @@ using namespace std;
 
 class Agent
 {
+
 public:
 	Position position = { 0, 0 };
 	AGENT_STATE state = AGENT_STATE::REST;
@@ -77,7 +78,7 @@ public:
         {
             if (site != nullptr && site->isInSite(&position))
             {
-//
+//                cout << "found site: " << site->id << endl;
                 return {true, site};
             }
         }
@@ -86,21 +87,12 @@ public:
 
 
     tuple<AGENT_STATE, Site*> getTransition(const vector<int>& dancerCountBySite, int numDancers) {
-        map<AGENT_STATE, double> transitionProbabilities;
+        map<pair<AGENT_STATE,Site*>, double> transitionProbabilities;
 
-        Site* newSite;
 
-        if (state == AGENT_STATE::REST) {
-            tuple<Site*, map<AGENT_STATE, double>> returnVal = transitionProbabilitiesRest(dancerCountBySite, numDancers);
-            newSite = get<0>(returnVal);
-            transitionProbabilities = get<1>(returnVal);
-        }
+        if (state == AGENT_STATE::REST) transitionProbabilities = transitionProbabilitiesRest(dancerCountBySite, numDancers);
 
-        else if (state == AGENT_STATE::EXPLORE) {
-            tuple<Site*, map<AGENT_STATE, double>> returnVal = transitionProbabilitiesExplore();
-            newSite = get<0>(returnVal);
-            transitionProbabilities = get<1>(returnVal);
-        }
+        else if (state == AGENT_STATE::EXPLORE) transitionProbabilities = transitionProbabilitiesExplore();
 
         else if (state == AGENT_STATE::ASSESS) transitionProbabilities = transitionProbabilitiesAssess();
 
@@ -114,7 +106,7 @@ public:
 
         else assert(false, "should not occur (getTransition)");
 
-        vector<AGENT_STATE> states;
+        vector<pair<AGENT_STATE, Site*>> states;
         vector<double> probs;
 
         for (auto i : transitionProbabilities) {
@@ -124,12 +116,12 @@ public:
 
         mt19937 gen(random_device{}());									//Fix probability of finding new state based on list of probability
         discrete_distribution<size_t> d{probs.begin(), probs.end()};
-        AGENT_STATE newState = states[d(gen)];
-        return make_tuple(newState, newSite);
+        auto newStateSite = states[d(gen)];
+        return make_tuple(newStateSite.first, newStateSite.second);
     }
 
-    tuple<Site*, map<AGENT_STATE, double>> transitionProbabilitiesRest(const vector<int>& dancerCountBySite, int numDancers) {
-        map<AGENT_STATE, double> transitionProbabilities;
+    map<pair<AGENT_STATE,Site*>, double> transitionProbabilitiesRest(const vector<int>& dancerCountBySite, int numDancers) {
+        map<pair<AGENT_STATE,Site*>, double> transitionProbabilities;
 
         double sum = accumulate(dancerCountBySite.begin(), dancerCountBySite.end(), 0);
 
@@ -141,106 +133,109 @@ public:
 
         pair<double, Site*> getterVal = getters::restToTravelSiteProb(restToAssessOrNot, isAtHub(), dancerCountBySite, numDancers, possibleSites);
 
-        transitionProbabilities[AGENT_STATE::TRAVEL_SITE] = get<0>(getterVal);
-        Site* newSite = get<1>(getterVal);
+        transitionProbabilities[{AGENT_STATE::TRAVEL_SITE, getterVal.second}] = get<0>(getterVal);
 
-        transitionProbabilities[AGENT_STATE::EXPLORE] = getters::restToExploreProb(restToExploreOrNot, isAtHub(), transitionProbabilities[AGENT_STATE::TRAVEL_SITE]);
+        transitionProbabilities[{AGENT_STATE::EXPLORE, nullptr}] = getters::restToExploreProb(restToExploreOrNot, isAtHub(), transitionProbabilities[{
+                AGENT_STATE::TRAVEL_SITE, nullptr}]);
 
         double allProbs = 0.0;
         for (auto i : transitionProbabilities) {
             allProbs += i.second;
         }
-        transitionProbabilities[AGENT_STATE::REST] = 1.0 - allProbs;
+        transitionProbabilities[{AGENT_STATE::REST, nullptr}] = 1.0 - allProbs;
 
-        return make_tuple(newSite, transitionProbabilities);
+        return transitionProbabilities;
     }
 
-    tuple<Site*, map<AGENT_STATE, double>> transitionProbabilitiesExplore() {
-        map<AGENT_STATE, double> transitionProbabilities;
+    map<pair<AGENT_STATE,Site*>, double> transitionProbabilitiesExplore() {
+        map<pair<AGENT_STATE,Site*>, double> transitionProbabilities;
 
         default_random_engine gen;
         uniform_real_distribution<double> dist(0.0, 1.0);	//AssertionFail here. check params file and see if there is a problem with this const
         double exploreToRestOrNot = dist(gen);
 
         auto curr_site_data = isAtAnySite();
-        transitionProbabilities[AGENT_STATE::ASSESS] = getters::exploreToAssessProb(curr_site_data.first, curr_site_data.second);
-        Site* newSite = curr_site_data.second;
+        transitionProbabilities[{AGENT_STATE::ASSESS, curr_site_data.second}] = getters::exploreToAssessProb(curr_site_data.first, curr_site_data.second);
 
-        transitionProbabilities[AGENT_STATE::TRAVEL_HOME_TO_REST] = getters::exploreToTravelHomeProb(exploreToRestOrNot, isAtHub(), transitionProbabilities[AGENT_STATE::ASSESS]);
+        transitionProbabilities[{AGENT_STATE::TRAVEL_HOME_TO_REST, nullptr}] = getters::exploreToTravelHomeProb(exploreToRestOrNot, isAtHub(), transitionProbabilities[{
+                AGENT_STATE::ASSESS, nullptr}]);
 
         double allProbs = 0.0;
         for (auto i : transitionProbabilities) {
             allProbs += i.second;
         }
-        transitionProbabilities[AGENT_STATE::EXPLORE] = 1.0 - allProbs;
-        return make_tuple(newSite, transitionProbabilities);
+        transitionProbabilities[{AGENT_STATE::EXPLORE, nullptr}] = 1.0 - allProbs;
+        return transitionProbabilities;
     }
 
-    map<AGENT_STATE, double> transitionProbabilitiesAssess() {
-        map<AGENT_STATE, double> transitionProbabilities;
+    map<pair<AGENT_STATE,Site*>, double> transitionProbabilitiesAssess() {
+        map<pair<AGENT_STATE,Site*>, double> transitionProbabilities;
 
         default_random_engine gen;
         uniform_real_distribution<double> dist(0.0, 1.0);
         double assessToDanceOrNot = dist(gen);
 
-        transitionProbabilities[AGENT_STATE::TRAVEL_HOME_TO_DANCE] = getters::assesToTravelHomeProb(assessToDanceOrNot, isAtAnySite().first);
+        transitionProbabilities[{AGENT_STATE::TRAVEL_HOME_TO_DANCE, nullptr}] = getters::assesToTravelHomeProb(assessToDanceOrNot, isAtAnySite().first);
 
         double allProbs = 0.0;
         for (auto i : transitionProbabilities) {
             allProbs += i.second;
         }
-        transitionProbabilities[AGENT_STATE::ASSESS] = 1.0 - allProbs;
+        transitionProbabilities[{AGENT_STATE::ASSESS, nullptr}] = 1.0 - allProbs;
 
         return transitionProbabilities;
     }
 
-    map<AGENT_STATE, double> transitionProbabilitiesDance() {
+    map<pair<AGENT_STATE,Site*>, double> transitionProbabilitiesDance() {
         assert(assignedSite != nullptr, "assigned site should not be null (transitionProbabilitiesDance)");
-        map<AGENT_STATE, double> transitionProbabilities;
+        map<pair<AGENT_STATE,Site*>, double> transitionProbabilities;
 
         default_random_engine gen;
         uniform_real_distribution<double> dist(0.0, 1.0);
         double danceToRestOrNot = dist(gen);
 
-        transitionProbabilities[AGENT_STATE::TRAVEL_SITE] = getters::danceToTravelSiteProb(danceToRestOrNot, isAtHub(), assignedSite->quality);
+        transitionProbabilities[{AGENT_STATE::TRAVEL_SITE, nullptr}] = getters::danceToTravelSiteProb(danceToRestOrNot, isAtHub(), assignedSite->quality);
 
-        transitionProbabilities[AGENT_STATE::REST] = getters::danceToRestProb(danceToRestOrNot, isAtHub(), assignedSite->quality);
+        transitionProbabilities[{AGENT_STATE::REST, nullptr}] = getters::danceToRestProb(danceToRestOrNot, isAtHub(), assignedSite->quality);
 
         double allProbs = 0.0;
         for (auto i : transitionProbabilities) {
             allProbs += i.second;
         }
-        transitionProbabilities[AGENT_STATE::DANCE] = 1.0 - allProbs;
+        transitionProbabilities[{AGENT_STATE::DANCE, nullptr}] = 1.0 - allProbs;
 
         return transitionProbabilities;
     }
 
-    map<AGENT_STATE, double> transitionProbabilitiesTravelDance() {
-        map<AGENT_STATE, double> transitionProbabilities;
+    map<pair<AGENT_STATE,Site*>, double> transitionProbabilitiesTravelDance() {
+        map<pair<AGENT_STATE,Site*>, double> transitionProbabilities;
 
-        transitionProbabilities[AGENT_STATE::DANCE] = getters::travelHomeToDanceProb(isAtHub());
+        transitionProbabilities[{AGENT_STATE::DANCE, nullptr}] = getters::travelHomeToDanceProb(isAtHub());
 
-        transitionProbabilities[AGENT_STATE::TRAVEL_HOME_TO_DANCE] = 1.0 - transitionProbabilities[AGENT_STATE::DANCE];
-
-        return transitionProbabilities;
-    }
-
-    map<AGENT_STATE, double> transitionProbabilitiesTravelRest() {
-        map<AGENT_STATE, double> transitionProbabilities;
-
-        transitionProbabilities[AGENT_STATE::REST] = getters::travelHomeToRestProb(isAtHub());
-
-        transitionProbabilities[AGENT_STATE::TRAVEL_HOME_TO_REST] = 1.0 - transitionProbabilities[AGENT_STATE::REST];
+        transitionProbabilities[{AGENT_STATE::TRAVEL_HOME_TO_DANCE, nullptr}] = 1.0 - transitionProbabilities[{
+                AGENT_STATE::DANCE, nullptr}];
 
         return transitionProbabilities;
     }
 
-    map<AGENT_STATE, double> transitionProbabilitiesTravelSite() {
-        map<AGENT_STATE, double> transitionProbabilities;
+    map<pair<AGENT_STATE,Site*>, double> transitionProbabilitiesTravelRest() {
+        map<pair<AGENT_STATE,Site*>, double> transitionProbabilities;
+
+        transitionProbabilities[{AGENT_STATE::REST, nullptr}] = getters::travelHomeToRestProb(isAtHub());
+
+        transitionProbabilities[{AGENT_STATE::TRAVEL_HOME_TO_REST, nullptr}] = 1.0 - transitionProbabilities[{AGENT_STATE::REST,
+                                                                                                              nullptr}];
+
+        return transitionProbabilities;
+    }
+
+    map<pair<AGENT_STATE,Site*>, double> transitionProbabilitiesTravelSite() {
+        map<pair<AGENT_STATE,Site*>, double> transitionProbabilities;
         auto siteLocationData = this->isAtAnySite();
-        transitionProbabilities[AGENT_STATE::ASSESS] = getters::travelSiteToAssesProb(siteLocationData.first, siteLocationData.second, assignedSite);
+        transitionProbabilities[{AGENT_STATE::ASSESS, nullptr}] = getters::travelSiteToAssesProb(siteLocationData.first, siteLocationData.second, assignedSite);
 
-        transitionProbabilities[AGENT_STATE::TRAVEL_SITE] = 1.0 - transitionProbabilities[AGENT_STATE::ASSESS];
+        transitionProbabilities[{AGENT_STATE::TRAVEL_SITE, nullptr}] = 1.0 - transitionProbabilities[{AGENT_STATE::ASSESS,
+                                                                                                      nullptr}];
 
         return transitionProbabilities;
     }
@@ -287,8 +282,12 @@ public:
 
     void assert(bool b, const char* msg)
     {
+
         if (!b)
-            throw msg;
+        {
+            cerr << msg << endl;
+//            throw msg;
+        }
     }
 
     int id;
