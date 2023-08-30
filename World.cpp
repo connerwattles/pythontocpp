@@ -2,10 +2,12 @@
 #include "Agent.h"
 #include "Params.h"
 #include <iostream>
+#include <fstream>
 #include <tuple>
 #include <vector>
 #include <fstream>
 #include <string>
+#include <numeric>
 
 using namespace std;
 
@@ -20,10 +22,10 @@ World::World(int siteCount, vector<Site*> sites, int agentCount, string uniqueFi
 
 
 void World::simulateSingleThreaded() {
-//	vector<vector<Position>> allPoses;
-//	vector<vector<Direction>> allDirs;
-//	vector<vector<AGENT_STATE>> allStates;
-//	vector<vector<Site*>> allSites;
+	vector<vector<Position>> allPoses;
+	vector<vector<Direction>> allDirs;
+	vector<vector<AGENT_STATE>> allStates;
+	vector<vector<Site*>> allSites;
 
 	addAgents();
 
@@ -31,10 +33,13 @@ void World::simulateSingleThreaded() {
 
 	//save copies of each of the values to another data structure so it can be added to a dataframe
 
-//	allPoses.push_back(poses);
-//	allDirs.push_back(dirs);
-//	allStates.push_back(states);
-//	allSites.push_back(agent_sites);
+	tuple<vector<Position>, vector<Direction>, vector<AGENT_STATE>, vector<Site*>> temp;
+	temp = getAllAgentPosesDirsStatesSites();
+
+	allPoses.push_back(get<0>(temp));
+	allDirs.push_back(get<1>(temp));
+	allStates.push_back(get<2>(temp));
+	allSites.push_back(get<3>(temp));
 
 	while (time < TIME_LIMIT)  {
         vector<int> dancerCountBySize = getDancerCountBySite();
@@ -55,18 +60,18 @@ void World::simulateSingleThreaded() {
         if (time % 100 == 0)
             cout << "steps taken: " << time << endl;
 
-//		values = getAllAgentPosesDirsStatesSites();
-//
-//		poses = get<0>(values);
-//		dirs = get<1>(values);
-//		states = get<2>(values);
-//		agent_sites = get<3>(values);
-//
-//
-//		allPoses.push_back(poses);
-//		allDirs.push_back(dirs);
-//		allStates.push_back(states);
-//		allSites.push_back(agent_sites);
+		values = getAllAgentPosesDirsStatesSites();
+
+		poses = get<0>(values);
+		dirs = get<1>(values);
+		states = get<2>(values);
+		agent_sites = get<3>(values);
+
+
+		allPoses.push_back(poses);
+		allDirs.push_back(dirs);
+		allStates.push_back(states);
+		allSites.push_back(agent_sites);
 
 		vector<int> dancers = getDancerCountBySite();
         int maxVal = -1;
@@ -90,23 +95,42 @@ void World::simulateSingleThreaded() {
         cout << "deleting agent" << endl;
         delete agent;
     }
-//	ofstream outFile;
-//	outFile.open("./sim_results/" + to_string(iterations) + ".csv");
-//	outFile << "time, agent_position, agent_directions, agent_states, agent_sites, \n";
-//	outFile << "[";
-//	for (int i = 0; i < allPoses.size(); i++) {
-//		outFile << "\"[";
-//		for (int j = 0; j < allPoses.at(i).size(); j++) {
-//			outFile << to_string(allPoses.at(i).at(j).x) + ", " + to_string(allPoses.at(i).at(j).y);
-//		}
-//		outFile << "], ";
-//	}
-//	outFile << "\",";
-	//something similar to this for the other three
-	
 
-	//create something similar to a dataframe that stores the list of values then save to metadata
+	ofstream outFile;
+	outFile.open("./sim_results/" + to_string(time) + ".csv");
+	outFile << "time, agent_position, agent_directions, agent_states, agent_sites, \n";
+	outFile << to_string(time);
+	outFile << ",[";
+	for (int sim = 0; sim < allPoses.size(); sim++) {
+		for (int ag = 0; ag < numAgents; ag++) {
+			outFile << "[" << to_string(allPoses.at(sim).at(ag).getX()) << ", " << to_string(allPoses.at(sim).at(ag).getY()) << "], ";
+		}
 
-	//write the values to a csv
+		for (int ag = 0; ag < numAgents; ag++) {
+			outFile << "[" << to_string(allDirs.at(sim).at(ag).getXComponent()) << ", " << to_string(allDirs.at(sim).at(ag).getYComponent()) << "], ";
+		}
+
+		for (int ag = 0; ag < numAgents; ag++) {
+			outFile << "[" << allStates.at(sim).at(ag) << ", " << allStates.at(sim).at(ag) << "], ";
+		}
+
+		for (int ag = 0; ag < numAgents; ag++) {
+			int siteID = allSites.at(sim).at(ag)->id;
+			outFile << "[";
+			if (siteID == -1) outFile << "None, ";
+			else outFile << to_string(siteID) << ", ";
+			outFile << "]" << endl;
+		}
+		outFile << endl;
+	}
 }
 
+void writeToCsv(string fileName, string time, vector<Position> agentPositions, vector<Direction> agentDirections, vector<string> agentStates, vector<Site> agentSites) {
+    ofstream file;
+    file.open(fileName, ios_base::app);
+    file << "time," << "agent_positions," << "agent_directions," << "agent_states," << "agent_sites\n";
+    file << 
+    //loop through all data and add to csv
+}
+
+ 
